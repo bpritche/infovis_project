@@ -83,41 +83,41 @@
                           "Vegetarian":"#324d97", "Ingredient":"#221642"};
           window.currIngredients = new Array(0); 
           
-          function getMessage() {
-			d3.select("svg").remove();
-			d3.csv('recipes_ingredients_testing.csv', function (error, data) {
-				d3.csv('recipe_type.csv', function (error2, data2) {
-					var select1 = document.getElementById("select1").value
-					var select2 = document.getElementById("select2").value
-					var select3 = document.getElementById("select3").value
-					var select4 = document.getElementById("select4").value
-					var select5 = document.getElementById("select5").value
-					var dataFiltered = data.filter(function (d) {
-						if (d["ingredient"] == select1 || d["ingredient"] == select2 || d["ingredient"] == select3 || d["ingredient"] == select4 || d["ingredient"] == select5){
-							return d
-						}
-					})
-
-					dataFiltered.sort(function(x,y){
-						return d3.ascending(x.Type,y.Type)
-					})
-
-					var mpr = chordMpr(dataFiltered);
-					mpr.addValuesToMap('ingredient', 'ingredient') 
-						.addValuesToMap('recipe', 'recipe')
-						.setFilter(function (row, a, b) { 
-							return (row.recipe === a.name && row.ingredient === b.name) ||
-										 (row.recipe === b.name && row.ingredient === a.name);
-						})
-						.setAccessor(function (recs, a, b) { 
-							if (!recs[0]) return 0;
-							return recs.length;
-						});
-					drawChords(mpr.getMatrix(), mpr.getMap(), data2);
-					addLegend();
-				});
-			});
-		}
+//          function getMessage() {
+//			d3.select("svg").remove();
+//			d3.csv('recipes_ingredients_testing.csv', function (error, data) {
+//				d3.csv('recipe_type.csv', function (error2, data2) {
+//					var select1 = document.getElementById("select1").value
+//					var select2 = document.getElementById("select2").value
+//					var select3 = document.getElementById("select3").value
+//					var select4 = document.getElementById("select4").value
+//					var select5 = document.getElementById("select5").value
+//					var dataFiltered = data.filter(function (d) {
+//						if (d["ingredient"] == select1 || d["ingredient"] == select2 || d["ingredient"] == select3 || d["ingredient"] == select4 || d["ingredient"] == select5){
+//							return d
+//						}
+//					})
+//
+//					dataFiltered.sort(function(x,y){
+//						return d3.ascending(x.Type,y.Type)
+//					})
+//
+//					var mpr = chordMpr(dataFiltered);
+//					mpr.addValuesToMap('ingredient', 'ingredient') 
+//						.addValuesToMap('recipe', 'recipe')
+//						.setFilter(function (row, a, b) { 
+//							return (row.recipe === a.name && row.ingredient === b.name) ||
+//										 (row.recipe === b.name && row.ingredient === a.name);
+//						})
+//						.setAccessor(function (recs, a, b) { 
+//							if (!recs[0]) return 0;
+//							return recs.length;
+//						});
+//					drawChords(mpr.getMatrix(), mpr.getMap(), data2);
+//					addLegend();
+//				});
+//			});
+//		}
 		//*******************************************************************
 		//  CREATE MATRIX AND MAP
 		//*******************************************************************
@@ -400,11 +400,19 @@
           });
         }
           
-        function addIngredientToChords(newItem) {
+        function updateChords(newItem, change) {
           d3.selectAll("svg").remove();
-          if (window.currIngredients.indexOf(newItem.value) < 0) {
-            window.currIngredients.push(newItem.value);
-          } else return; 
+          
+          newItemIdx = (window.currIngredients.indexOf(newItem.value));
+          if (change == "add") {
+            if (newItemIdx < 0) {
+              window.currIngredients.push(newItem.value);
+            } else return; 
+          } else if (change == "remove") {
+            if (newItemIdx > -1) {
+              window.currIngredients.splice(newItemIdx, 1);
+            } else return;
+          } else console.log("unrecognized change input!"); 
           
           var dataFiltered = window.recipes_ingredients_data.filter(function(d) {
             if (window.currIngredients.indexOf(d["ingredient"]) > -1) {

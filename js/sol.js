@@ -885,7 +885,7 @@
             var solOptionItem = $changedItem.data('sol-item'),
                 $existingDisplayItem = solOptionItem.displaySelectionItem,
                 $displayItemText;
-            addIngredientToChords(solOptionItem)
+            updateChords(solOptionItem, "add")
 
             if (!$existingDisplayItem) {
                 $displayItemText = $('<span class="sol-selected-display-item-text" />').html(solOptionItem.label);
@@ -913,6 +913,7 @@
         _removeSelectionDisplayItem: function ($changedItem) {
             var solOptionItem = $changedItem.data('sol-item'),
                 $myDisplayItem = solOptionItem.displaySelectionItem;
+            updateChords(solOptionItem, "remove")
 
             if ($myDisplayItem) {
                 $myDisplayItem.remove();
