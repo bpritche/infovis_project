@@ -76,7 +76,8 @@
                         selectionContainerBottom = selectionContainerYPos + selectionContainerHeight,
                         displayContainerAboveInput = this.config.displayContainerAboveInput || document.documentElement.clientHeight - this.config.scrollTarget.scrollTop() < selectionContainerBottom,
                         selectionContainerWidth = this.$innerContainer.outerWidth(false) - parseInt(this.$selectionContainer.css('border-left-width'), 10) - parseInt(this.$selectionContainer.css('border-right-width'), 10);
-
+                  
+                    displayContainerAboveInput = false;
                     if (displayContainerAboveInput) {
                         // position the popup above the input
                         selectionContainerYPos = this.$input.offset().top - selectionContainerHeight - this.config.scrollTarget.scrollTop() + parseInt(this.$selectionContainer.css('border-bottom-width'), 10);
@@ -126,7 +127,7 @@
             multiple: undefined,
             resultsContainer: undefined, // jquery element where the results should be appended
             closeOnClick: true, // close when user clicked 'select all' or 'deselect all'
-            showSelectionBelowList: false,
+            showSelectionBelowList: true,
             allowNullSelection: false,
             scrollTarget: undefined,
             maxHeight: undefined,
@@ -884,6 +885,7 @@
             var solOptionItem = $changedItem.data('sol-item'),
                 $existingDisplayItem = solOptionItem.displaySelectionItem,
                 $displayItemText;
+            addIngredientToChords(solOptionItem)
 
             if (!$existingDisplayItem) {
                 $displayItemText = $('<span class="sol-selected-display-item-text" />').html(solOptionItem.label);

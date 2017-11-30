@@ -54,7 +54,7 @@
 	<body>
 		<div id="tooltip"></div>
         <!-- Filter!! -->
-        <select id="filterbox" data-sol-name="ingredients"></select>
+        <select id="filterbox" data-sol-name="ingredients" multiple = "multiple"></select>
 <!--
 		<p><form id="filterbox">
           <fieldset id="filter_ingredients">
@@ -81,6 +81,7 @@
 		CUISINE_COLORS = {"Italian":"#0dab76", "American":"#139a43", "Chinese":"#0b5d1e",
                          "Mexican":"#053b06", "Japanese":"#6295ba", 
                           "Vegetarian":"#324d97", "Ingredient":"#221642"};
+          window.currIngredients = new Array(0); 
           
           function getMessage() {
 			d3.select("svg").remove();
@@ -121,6 +122,8 @@
 		//  CREATE MATRIX AND MAP
 		//*******************************************************************
 		d3.csv('recipes_ingredients_testing.csv', function (error, data) {
+            window.recipes_ingredients_data = data;
+            mpr = window.mpr;
 			data.sort(function(x,y) {
 				return d3.ascending(x.Type,y.Type)
 			});
@@ -129,15 +132,19 @@
 				var mpr = chordMpr(data);
 				mpr.addValuesToMap('ingredient', 'ingredient')
 					 .addValuesToMap('recipe', 'recipe')
-					 .setFilter(function (row, a, b) { 
+					 .setFilter(function (row, a, b) {
+                        var ingredientSelected = 
+                            window.currIngredients.indexOf(row.ingredient) > 0;
 						return (row.recipe === a.name && row.ingredient === b.name) ||
-									 (row.recipe === b.name && row.ingredient === a.name);
+									 (row.recipe === b.name && row.ingredient === a.name) && ingredientSelected;
+                  
 					 })
 					 .setAccessor(function (recs, a, b) {
 						if (!recs[0]) return 0;
 						return recs.length;
 					 });
-				drawChords(mpr.getMatrix(), mpr.getMap(), data2);
+                window.mpr = mpr; window.typeData = data2;
+                drawChords(mpr.getMatrix(), mpr.getMap(), data2);
 				addLegend();
                 drawFilterBox(mpr.getMap());
 				
@@ -385,8 +392,45 @@
                                    "value":ingredientNames[i], 
                                    "label":ingredientNames[i]});
           }
-          console.log(ingredientObject)
-          $("#filterbox").searchableOptionList({data: ingredientObject})
+          
+          $("#filterbox").searchableOptionList({
+            data: ingredientObject, 
+            maxHeight: "150px", 
+            texts: {searchplaceholder: "What ingredients do you already have?"}
+          });
+        }
+          
+        function addIngredientToChords(newItem) {
+          d3.selectAll("svg").remove();
+          if (window.currIngredients.indexOf(newItem.value) < 0) {
+            window.currIngredients.push(newItem.value);
+          } else return; 
+          
+          var dataFiltered = window.recipes_ingredients_data.filter(function(d) {
+            if (window.currIngredients.indexOf(d["ingredient"]) > -1) {
+              return d;
+            };
+          })
+          var dataFiltered = dataFiltered.sort(function(x,y){
+              return d3.ascending(x.Type,y.Type)
+          })
+
+          var mpr = chordMpr(dataFiltered);
+          mpr.addValuesToMap('ingredient', 'ingredient')
+               .addValuesToMap('recipe', 'recipe')
+               .setFilter(function (row, a, b) {
+                  return (row.recipe === a.name && row.ingredient === b.name) ||
+                               (row.recipe === b.name && row.ingredient === a.name);
+
+               })
+               .setAccessor(function (recs, a, b) {
+                  if (!recs[0]) return 0;
+                  return recs.length;
+               });
+          window.mpr = mpr; 
+          drawChords(mpr.getMatrix(), mpr.getMap(), window.typeData);
+          addLegend();
+
         }
 		
         //*******************************************************************
