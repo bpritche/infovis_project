@@ -30,29 +30,34 @@
               stroke-width: .25px;
           }
           path.fade {
-              display: none;
+              fill-opacity: 0.07;
           }
 
-          fieldset { 
-            display: block;
-            margin-left: 2px;
-            margin-right: 2px;
-            padding-top: 0.35em;
-            padding-bottom: 0.625em;
-            padding-left: 0.75em;
-            padding-right: 0.75em;
-            border: 2px double #DCDCDC;
+          .axis path,
+          .axis line {
+            fill:none;
+            stroke: black;
+            shape-rendering: crispEdges;
           }
           
-          #filter_ingredients_title {
-            /* MAKE BOLD */
-            font: 16px sans-serif;
+          .axis text {
+            font-family: sans-serif;
+            font-size: 11px;
           }
-
+          
+          .chordLabel {
+            visibility:hidden;
+          }
+          
+          .text-show {
+            visibility:visible;
+          }
+          
 		</style>
 	</head>
 	<body>
-		<div id="tooltip"></div>
+		<div id="scatterTooltip"></div>
+        <div id="chordTooltip"></div>
         <!-- Filter!! -->
         <select id="filterbox" data-sol-name="ingredients" multiple = "multiple"></select>
 <!--
@@ -255,16 +260,19 @@
         		.domain([0, d3.max(arrRecipes, function (d) {
             		return d.total_time_mins;
         		})]);
-        	// define X,Y axis
-			var xAxis = d3.svg.axis()
-							  .scale(x)
-							  .orient("bottom")
-							  .ticks(6);
+        	
+            // define X,Y axis
+			var xAxis = 
+                d3.svg.axis()
+				  .scale(x)
+				  .orient("bottom")
+				  .ticks(6);
 
-			var yAxis = d3.svg.axis()
-							  .scale(y)
-							  .orient("left")
-							  .ticks(8);
+			var yAxis = 
+                d3.svg.axis()
+                    .scale(y)
+					.orient("left")
+					.ticks(8);
 
 
 			// Create X-axis, Y-axis
@@ -465,7 +473,7 @@
 							selected = false;
 							selectedI = -1;
 						}
-						mouseover(null,d.index);
+						mouseover(rdr(d).gname,d.index);
 						scatterPlotData(rdr(d).gname);
 					});
 
@@ -475,19 +483,23 @@
 						return rdr(d).gdata == "ingredient" ? CUISINE_COLORS.Ingredient: getColorForRecipe(rdr(d).gname, typeData); })
 					.attr("d", arc);
 
-//			g.append("svg:text")
-//					.each(function(d) { d.angle = (d.startAngle + d.endAngle) / 2; })
-//					.attr("dy", ".35em")
-//					.style("font-family", "helvetica, arial, sans-serif")
-//					.style("font-size", "10px")
-//					.attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
-//					.attr("transform", function(d) {
-//						return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
-//								+ "translate(" + (r0 + 30) + ")"
-//								+ (d.angle > Math.PI ? "rotate(180)" : "");
-//					})
-//					.text(function(d) { 
-//						return rdr(d).gname; });
+			g.append("svg:text")
+					.each(function(d) { d.angle = (d.startAngle + d.endAngle) / 2; })
+					.attr("dy", ".35em")
+                    .attr("class","chordLabel")
+					.style("font-family", "helvetica, arial, sans-serif")
+					.style("font-size", "10px")
+                    .style("visibility", "hidden")
+					.attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
+					.attr("transform", function(d) {
+						return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+								+ "translate(" + (r0 + 30) + ")"
+								+ (d.angle > Math.PI ? "rotate(180)" : "");
+					})
+					.text(function(d) { 
+						return rdr(d).gname; });
+            
+            var chordLabels = svg.selectAll(".chordLabel");
 
 			var chordPaths = svg.selectAll("path.chord")
 						.data(chord.chords())
@@ -499,16 +511,30 @@
 						.attr("d", d3.svg.chord().radius(r0))
 
 			function mouseover(d, i) {
-                tooltip.transition()		
-                		.duration(200)		
-                		.style("opacity", .9);
-				    tooltip.html(d)
-				      .style("left", (d3.event.pageX + 1) + "px")
-				      .style("top", (d3.event.pageY - 1) + "px")
+//                tooltip.transition()		
+//                		.duration(200)		
+//                		.style("opacity", .9);
+//				    tooltip.html(d)
+//				      .style("left", (d3.event.pageX + 1) + "px")
+//				      .style("top", (d3.event.pageY - 1) + "px")
+//                      .text(d)
 				chordPaths.classed("fade", function(p) {
-					return p.source.index != i
+                    return p.source.index != i
 							&& p.target.index != i;
 				});
+              
+                chordLabels.map(function(p) {
+                  var onlyRecipes = p.filter(function(pl, i) {
+                    if (pl.innerHTML == d) {
+                      var style = pl.style;
+                      pl.style.visibility = "visible";
+                      console.log(p)
+                    } else {
+                      pl.style.visibility = "hidden";
+                    }
+                    return pl.innerHTML == d;
+                  })
+                })
 			}			
 	}
 	</script>
